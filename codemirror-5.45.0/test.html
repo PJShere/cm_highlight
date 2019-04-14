@@ -1,0 +1,61 @@
+<!-- Create a simple CodeMirror instance -->
+<!doctype html>
+<html>
+    <head>
+        <title>Frontend Playground</title>
+        <link rel="stylesheet" type="text/css" href="lib/codemirror.css">
+        <script type="text/javascript" src="lib/codemirror.js"></script>
+        <script type="text/javascript" src="mode/xml/xml.js"></script>
+				<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+		</head>
+    <body>
+			<div style="width:100%;">
+				<div style="float:left; width:50%; border: 1px solid gray">
+        <textarea id="editor" type="text/html">
+&lt?xml version="1.0" encoding="UTF-8"?&gt
+&ltnote&gt
+&ltto&gtTove&lt/to&gt
+&lt/note&gt</textarea>
+				</div>
+				<div style="float:right; width:20%; border: 1px solid gray">
+					<ul>
+						<li>XPATH:<a href="#" onclick="highlight($(this).attr('id'))" id="xmlhigh">/note</a></li>
+						<li>XPATH:<a href="#" onclick="highlight($(this).attr('id'))" id="xmlhigh_2">/note/to</a></li>
+						<a href="#"><button onclick="highlight_clear()">Clear</button></a>
+					</ul>
+				</div>
+			</div>
+    </body>
+    <script>
+        var editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
+            lineNumbers: true,
+            mode:  "xml"
+        });
+
+
+				var histmarks = [];
+
+				function highlight(link_id) {
+					if (histmarks.length > 0) {
+						highlight_clear();
+					};
+					
+					$.post(
+						"http://localhost:5000/getxml_lineno",
+						{
+							xml_chunk: editor.getValue(),
+							x_path: $('#'+link_id).text()
+						},
+						function(data) {
+						console.log(data.start, data.end);
+						var cm_mtext = editor.markText(data.start, data.end, {css:"background-color:orange;"});
+						histmarks.push(cm_mtext);
+						},
+					);
+				};
+
+				function highlight_clear() {
+					histmarks.forEach((item) =>{item.clear();});
+					histmarks.length = 0;
+				};
+    </script>
